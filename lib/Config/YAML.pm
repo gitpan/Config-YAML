@@ -1,6 +1,6 @@
 package Config::YAML;
 
-# $Id: YAML.pm 37 2005-01-17 03:52:08Z mdxi $
+# $Id: YAML.pm 41 2005-03-15 22:33:09Z mdxi $
 
 use warnings;
 use strict;
@@ -14,11 +14,11 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.37
+Version 1.40
 
 =cut
 
-our $VERSION = '1.37';
+our $VERSION = '1.40';
 
 =head1 SYNOPSIS
 
@@ -109,7 +109,7 @@ sub new {
                      }, $class;
 
     %args = @_;
-    @{%{$self}}{keys %args} = values %args;
+    @{$self}{keys %args} = values %args;
 
     $self->read;
     return $self;
@@ -199,7 +199,7 @@ sub read {
     close(FH);
 
     my $tmpyaml = Load($yaml);
-    @{%{$self}}{keys %{$tmpyaml}} = values %{$tmpyaml}; # woo, hash slice
+    @{$self}{keys %{$tmpyaml}} = values %{$tmpyaml}; # woo, hash slice
 }
 
 =head2 write

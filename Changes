@@ -1,5 +1,11 @@
 Revision history for Config-YAML
 
+1.40    2005-03-15
+
+        * Fixed bug in hash slice operation in new() and read()
+          methods. RT#11886. Thanks to JFITZ for finding it and
+          mugwump for pointing out the syntax error.
+
 1.37    2005-01-16 2245EDT
 
         * get() and set() methods deprecated in favor of autoloading
