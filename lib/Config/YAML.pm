@@ -1,6 +1,6 @@
 package Config::YAML;
 
-# $Id: YAML.pm 26 2004-10-23 20:29:14Z mdxi $
+# $Id: YAML.pm 28 2004-11-15 01:53:05Z mdxi $
 
 use warnings;
 use strict;
@@ -12,11 +12,11 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.22
+Version 1.28
 
 =cut
 
-our $VERSION = '1.27';
+our $VERSION = '1.28';
 
 =head1 SYNOPSIS
 
@@ -123,15 +123,16 @@ as parameters directly in the object hashref, and are accessed as
     $c->{array}[idx]
     $c->{hash}{key}
 
-and so on down your data structure. However, the method C<get> is
-provided for people who are skeeved by treating an object as a plain
-old hashref part of the time.
+and so on down your data structure. 
+
+However, the method C<get> is provided for people who are skeeved by
+treating an object as a plain old hashref part of the time.
 
 C<get> returns the value of a parameter
 
     print $c->get('foo');
 
-If the config parameter requested is something other than a scalar, a
+If the parameter requested is something other than a scalar, a
 reference to it will be returned.
 
 =cut
@@ -143,7 +144,8 @@ sub get {
 
 =head2 set
 
-Also provided is a C<set> method, which sets the value of a parameter:
+Also provided is a C<set> method, which can be used to set the value
+of a single parameter:
 
     $c->set('foo',1);
     $c->set('bar',"While I pondered, weak and weary...");
@@ -160,12 +162,12 @@ sub set {
 
 =head2 fold
 
-Provides a mechanism for the integration of configuration data from
-any source...
+The C<fold> method provides a mechanism for the integration of
+configuration data from any source...
 
     $c->fold(\%data);
 
-...as long as it's been munged into a hash.
+...as long as it's been previously munged into a hash.
 
 =cut
 
@@ -211,8 +213,8 @@ Dump current configuration state to a YAML-formatted flat file.
 
     $c->write;
 
-The file to be written is specified in the constructor call. See C<new>,
-above, for details.
+The file to be written is specified in the constructor call. See the
+C<new> method documentation for details.
 
 =cut
 
