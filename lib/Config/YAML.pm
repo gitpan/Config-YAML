@@ -1,6 +1,6 @@
 package Config::YAML;
 
-# $Id: YAML.pm 18 2004-10-01 19:46:51Z mdxi $
+# $Id: YAML.pm 21 2004-10-02 18:50:24Z mdxi $
 
 use warnings;
 use strict;
@@ -10,20 +10,20 @@ use YAML;
 
 Config::YAML - Simple configuration automation
 
-=head1 Version
+=head1 VERSION
 
-Version 1.0
+Version 1.21
 
 =cut
 
-our $VERSION = '1.0';
+our $VERSION = '1.21';
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
-Config::YAML is a wrapper around the YAML module which makes reading
-and writing configuration files simple. Handling multiple config files
-(e.g. system and per-user, or a gallery app with per-directory
-configuration) is a snap.
+Config::YAML is a somewhat object-oriented wrapper around the YAML
+module which makes reading and writing configuration files
+simple. Handling multiple config files (e.g. system and per-user, or a
+gallery app with per-directory configuration) is a snap.
 
     use Config::YAML;
 
@@ -60,14 +60,14 @@ configuration) is a snap.
 
 
 
-=head1 Methods
+=head1 METHODS
 
 =head2 new
 
 Creates a new Config::YAML object.
 
     my $c = Config::YAML->new( config => initial_config, 
-                               output => <output_config>
+                               output => output_config
                              );
 
 The C<initial_config> argument is required, and specifies the file to
@@ -75,23 +75,24 @@ be read in during object creation. The C<output_config> file argument,
 which specifies the file to write config data to, is optional and
 defaults to the value of C<initial_config>.
 
-For the sake of convenience, Config::YAML doesn't try to strictly
-enforce its object-orientation. Values read from YAML files are stored
-as values (scalar, arrayref, hashref) directly in the object hashref,
-and are accessed as: C<< $c->{scalar} >> or C<< $c->{array}[idx] >> or
-C<< $c->{hash}{key} >> (and so on down your data structure). 
-
-By the same token, any desired configuration defaults can be passed as
-arguments to the constructor.
+Any desired configuration defaults can be passed as arguments to the
+constructor.
 
     my $c = Config::YAML->new( config => "~/.foorc",
-                               foo => "bar",
-                               baz => "quux"
+                               foo    => "bar",
+                               baz    => "quux"
                              );
 
 All internal state variables follow the C<_name> convention, so do
 yourself a favor and don't make config variables with underscores as
 their first character.
+
+For the sake of convenience, Config::YAML doesn't try to strictly
+enforce its object-orientation. Values read from YAML files are stored
+as parameters directly in the object hashref, and are accessed as: C<<
+$c->{scalar} >> or C<< $c->{array}[idx] >> or C<< $c->{hash}{key} >>,
+and so on down your data structure. If this bothers you, see C<get>,
+below.
 
 =cut
 
@@ -130,7 +131,8 @@ sub get {
 
 Sets the value of a parameter
 
-    print $c->set('foo',1);
+    $c->set('foo',1);
+    $c->set('bar',"While I pondered, weak and weary...");
 
 Provided for people who are skeeved by treating an object as a plain
 old hashref part of the time.
@@ -215,18 +217,18 @@ sub write {
 
 
 
-=head2 TODO
+=head1 TODO
 
 The ability to delineate "system" and "user" level configuration,
-enabling the output of write() to consist only of data from the user's
+enabling the output of C<write> to consist only of data from the user's
 own init files and command line arguments might be nice.
 
-=head1 Author
+=head1 AUTHOR
 
 Shawn Boyette (C<< <mdxi@cpan.org> >>); original implementation by
 Kirrily "Skud" Robert (as YAML::ConfigFile).
 
-=head1 Bugs
+=head1 BUGS
 
 =over
 
@@ -243,7 +245,7 @@ C<bug-yaml-configfile@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-=head1 Copyright & License
+=head1 COPYRIGHT & LICENSE
 
 Copyright 2004 Shawn Boyette, All Rights Reserved.
 
