@@ -1,5 +1,9 @@
 Revision history for Config-YAML
 
+1.41    2005-03-16
+
+        * Bug from 1.40 also occurred in fold(). Fixed.
+
 1.40    2005-03-15
 
         * Fixed bug in hash slice operation in new() and read()

@@ -14,11 +14,11 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.40
+Version 1.41
 
 =cut
 
-our $VERSION = '1.40';
+our $VERSION = '1.41';
 
 =head1 SYNOPSIS
 
@@ -168,7 +168,7 @@ at once. Requires a hashref as its argument.
 sub fold {
     my ($self, $data) = @_;
     # add check for HASHREF when strict mode is implemented
-    @{%{$self}}{keys %{$data}} = values %{$data};
+    @{$self}{keys %{$data}} = values %{$data};
 }
 
 =head2 read
