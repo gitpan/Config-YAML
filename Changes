@@ -1,5 +1,14 @@
 Revision history for Config-YAML
 
+1.22    2004-10-03 1945EDT
+        In new(), the 'config' and 'output' parameters must now be the
+        first and (still optionally) second parameters passed. This is
+        so that they can be repeated, allowing the user to set their
+        own non-special 'config' and 'output' parameters in the actual
+        configuration hash.
+
+        Doc tweaks to reflect this as well as more general tweaks.
+
 1.21    2004-10-02 1448EDT
         Doc cleanups
 

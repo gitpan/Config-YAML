@@ -1,6 +1,6 @@
 package Config::YAML;
 
-# $Id: YAML.pm 21 2004-10-02 18:50:24Z mdxi $
+# $Id: YAML.pm 25 2004-10-04 00:10:08Z mdxi $
 
 use warnings;
 use strict;
@@ -12,11 +12,11 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.21
+Version 1.22
 
 =cut
 
-our $VERSION = '1.21';
+our $VERSION = '1.22';
 
 =head1 SYNOPSIS
 
@@ -70,10 +70,15 @@ Creates a new Config::YAML object.
                                output => output_config
                              );
 
-The C<initial_config> argument is required, and specifies the file to
-be read in during object creation. The C<output_config> file argument,
-which specifies the file to write config data to, is optional and
-defaults to the value of C<initial_config>.
+The C<config> parameter is required, and must be the first parameter
+given. It specifies the file to be read in during object creation. If
+the second parameter is C<output>, then it is taken to specify the
+file to which configuration data will later be written out. This
+positional dependancy makes it possible to have another C<config>
+and/or C<output> parameter passed to the constructor, which will not
+receive any special treatment. (It is, of course, also safe to have
+parameters named C<config> and/or C<output> in configuration files or
+in calls to C<set>.)
 
 Any desired configuration defaults can be passed as arguments to the
 constructor.
@@ -87,24 +92,22 @@ All internal state variables follow the C<_name> convention, so do
 yourself a favor and don't make config variables with underscores as
 their first character.
 
-For the sake of convenience, Config::YAML doesn't try to strictly
-enforce its object-orientation. Values read from YAML files are stored
-as parameters directly in the object hashref, and are accessed as: C<<
-$c->{scalar} >> or C<< $c->{array}[idx] >> or C<< $c->{hash}{key} >>,
-and so on down your data structure. If this bothers you, see C<get>,
-below.
-
 =cut
 
 sub new {
-    my ($class, %args) = @_;
+    my $class = shift;
+    my %priv  = ();
+    my %args  = ();
 
-    my $self = bless { _infile    => $args{config} || die("Can't create Config::YAML object with no config file.\n"),
-                       _outfile   => $args{output} || $args{config},
+    die("Can't create Config::YAML object with no config file.\n") if ($_[0] ne "config");
+    shift; $priv{config} = shift;
+    if (@_ && ($_[0] eq "output")) { shift; $priv{output} = shift; }
+
+    my $self = bless { _infile    => $priv{config},
+                       _outfile   => $priv{output} || $priv{config},
                      }, $class;
 
-    delete @args{qw(config output)};
-
+    %args = @_;
     @{%{$self}}{keys %args} = values %args;
 
     $self->read;
@@ -113,7 +116,18 @@ sub new {
 
 =head2 get
 
-Returns the value of a parameter
+For the sake of convenience, Config::YAML doesn't try to strictly
+enforce its object-orientation. Values read from YAML files are stored
+as parameters directly in the object hashref, and are accessed as
+
+    $c->{scalar}
+    $c->{array}[idx]
+    $c->{hash}{key}
+
+and so on down your data structure. If this bothers you, C<get> is
+provided.
+
+C<get> returns the value of a parameter
 
     print $c->get('foo');
 
@@ -197,6 +211,9 @@ Dump current configuration state to a YAML-formatted flat file.
 
     $c->write;
 
+The file to be used is specified in the constructor call. See C<new>,
+above, for details.
+
 =cut
 
 sub write {
@@ -217,20 +234,24 @@ sub write {
 
 
 
+=head1 AUTHOR
+
+Shawn Boyette (C<< <mdxi@cpan.org> >>); original implementation by
+Kirrily "Skud" Robert (as YAML::ConfigFile).
+
 =head1 TODO
 
 The ability to delineate "system" and "user" level configuration,
 enabling the output of C<write> to consist only of data from the user's
 own init files and command line arguments might be nice.
 
-=head1 AUTHOR
-
-Shawn Boyette (C<< <mdxi@cpan.org> >>); original implementation by
-Kirrily "Skud" Robert (as YAML::ConfigFile).
-
 =head1 BUGS
 
 =over
+
+=item
+
+C<get> and C<set> don't currently work on nested data structures.
 
 =item
 
