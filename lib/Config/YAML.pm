@@ -1,10 +1,12 @@
 package Config::YAML;
 
-# $Id: YAML.pm 28 2004-11-15 01:53:05Z mdxi $
+# $Id: YAML.pm 37 2005-01-17 03:52:08Z mdxi $
 
 use warnings;
 use strict;
 use YAML;
+
+use vars qw( $AUTOLOAD );
 
 =head1 NAME
 
@@ -12,18 +14,19 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.28
+Version 1.37
 
 =cut
 
-our $VERSION = '1.28';
+our $VERSION = '1.37';
 
 =head1 SYNOPSIS
 
 Config::YAML is a somewhat object-oriented wrapper around the YAML
 module which makes reading and writing configuration files
-simple. Handling multiple config files (e.g. system and per-user, or a
-gallery app with per-directory configuration) is a snap.
+simple. Handling multiple config files (e.g. system and per-user
+configuration, or a gallery app with per-directory configuration) is a
+snap.
 
     use Config::YAML;
 
@@ -53,7 +56,7 @@ gallery app with per-directory configuration) is a snap.
     # simply get params back for use...
     do_something() unless $c->{param1};
     # or get them more OO-ly if that makes you feel better
-    do_something_else() if $c->get('param2');
+    my $value = $c->get_param2;
 
 =cut
 
@@ -70,26 +73,21 @@ Creates a new Config::YAML object.
                                output => output_config
                              );
 
-The C<config> parameter is required, and must be the first parameter
-given. It specifies the file to be read in during object creation. If
+The C<config> parameter specifies the file to be read in during object
+creation. It is required, and must be the first parameter given. If
 the second parameter is C<output>, then it is used to specify the file
 to which configuration data will later be written out.  This
-positional dependancy makes it possible to have another C<config>
-and/or C<output> parameter passed to the constructor, which will
-receive no special treatment.
+positional dependancy makes it possible to have parameters named
+"config" and/or "output" in config files.
 
-Initial configuration values can be passed as parameters to the
-constructor:
+Initial configuration values can be passed as subsequent parameters to
+the constructor:
 
     my $c = Config::YAML->new( config => "~/.foorc",
                                foo    => "abc",
                                bar    => "xyz",
                                baz    => [ 1, 2, 3 ],
                              );
-
-All internal state variables follow the C<_name> convention, so do
-yourself a favor and don't pass parameters with underscores as their
-first character.
 
 =cut
 
@@ -98,12 +96,16 @@ sub new {
     my %priv  = ();
     my %args  = ();
 
-    die("Can't create Config::YAML object with no config file.\n") if ($_[0] ne "config");
+    die("Can't create Config::YAML object with no config file.\n") 
+        if ($_[0] ne "config");
     shift; $priv{config} = shift;
-    if (@_ && ($_[0] eq "output")) { shift; $priv{output} = shift; }
 
-    my $self = bless { _infile    => $priv{config},
-                       _outfile   => $priv{output}   || $priv{config},
+    if (@_ && ($_[0] eq "output")) { shift; $priv{output} = shift; }
+    if (@_ && ($_[0] eq "strict")) { shift; $priv{strict} = shift; }
+
+    my $self = bless { _infile   => $priv{config},
+                       _outfile  => $priv{output}   || $priv{config},
+                       _strict   => $priv{strict}   || 0,
                      }, $class;
 
     %args = @_;
@@ -113,66 +115,59 @@ sub new {
     return $self;
 }
 
-=head2 get
+=head2 get_*/set_*
 
-For the sake of convenience, Config::YAML doesn't try to strictly
-enforce its object-orientation. Values read from YAML files are stored
-as parameters directly in the object hashref, and are accessed as
+If you'd prefer not to directly molest the object to store and
+retrieve configuration data, autoloading methods of the forms
+C<get_[param]> and C<set_[param]> are provided. Continuing from the
+previous example:
 
-    $c->{scalar}
-    $c->{array}[idx]
-    $c->{hash}{key}
+    print $c->get_foo;      # prints "abc"
+    my $val = $c->get_quux; # $c->{quux} doesn't exist; returns undef
 
-and so on down your data structure. 
-
-However, the method C<get> is provided for people who are skeeved by
-treating an object as a plain old hashref part of the time.
-
-C<get> returns the value of a parameter
-
-    print $c->get('foo');
-
-If the parameter requested is something other than a scalar, a
-reference to it will be returned.
+    $c->set_bar(30);     # $c->{bar} now equals 30, not "xyz"
+    my @list = qw(alpha beta gamma);
+    $c->set_baz(\@list); # $c->{baz} now a reference to @list
 
 =cut
 
-sub get {
-    my ($self, $arg) = @_;
-    return $self->{$arg};
-}
+sub Config::YAML::AUTOLOAD {
+    no strict 'refs';
+    my ($self, $newval) = @_;
 
-=head2 set
+    if ($AUTOLOAD =~ /.*::get_(\w+)/) {
+        my $attr = $1;
+        return undef if (!defined $self->{$attr});
+        *{$AUTOLOAD} = sub { return $_[0]->{$attr} };
+        return $self->{$attr};
+    }
 
-Also provided is a C<set> method, which can be used to set the value
-of a single parameter:
-
-    $c->set('foo',1);
-    $c->set('bar',"While I pondered, weak and weary...");
-
-    my @paints = qw( oil acrylic tempera );
-    $c->set('paints', \@paints);
-
-=cut
-
-sub set {
-    my ($self, $key, $val) = @_;
-    $self->{$key} = $val;
+    if ($AUTOLOAD =~ /.*::set_(\w+)/) {
+        my $attr = $1;
+        *{$AUTOLOAD} = sub { $_[0]->{$attr} = $_[1]; return };
+        $self->{$attr} = $newval;
+        return;
+    }
 }
 
 =head2 fold
 
-The C<fold> method provides a mechanism for the integration of
-configuration data from any source...
+Convenience method for folding multiple values into the config object
+at once. Requires a hashref as its argument.
 
-    $c->fold(\%data);
+    $prefs{theme}  = param(theme);
+    $prefs{format} = param(format);
+    $prefs{sortby} = param(order);
 
-...as long as it's been previously munged into a hash.
+    $c->fold(\%prefs);
+
+    my $format = $c->get_format; # value matches that of param(format)
 
 =cut
 
 sub fold {
     my ($self, $data) = @_;
+    # add check for HASHREF when strict mode is implemented
     @{%{$self}}{keys %{$data}} = values %{$data};
 }
 
@@ -183,8 +178,8 @@ Imports a YAML-formatted config file.
     $c->read('/usr/share/fooapp/fooconf');
 
 C<read()> is called at object creation and imports the file specified
-by the C<< new(config=>) >> parameter, so there is no need to call it
-manually unless you have multiple config files.
+by C<< new(config=>) >>, so there is no need to call it manually
+unless multiple config files exist.
 
 =cut
 
@@ -233,8 +228,39 @@ sub write {
     close(FH);
 }
 
+=head1 DEPRECATED METHODS
 
+These methods have been superceded and will likely be removed in the
+next release.
 
+=head2 get
+
+Returns the value of a parameter.
+
+    print $c->get('foo');
+
+=cut
+
+sub get {
+    my ($self, $arg) = @_;
+    return $self->{$arg};
+}
+
+=head2 set
+
+Sets the value of a parameter:
+
+    $c->set('foo',1);
+
+    my @paints = qw( oil acrylic tempera );
+    $c->set('paints', \@paints);
+
+=cut
+
+sub set {
+    my ($self, $key, $val) = @_;
+    $self->{$key} = $val;
+}
 
 =head1 AUTHOR
 
@@ -242,22 +268,6 @@ Shawn Boyette (C<< <mdxi@cpan.org> >>)
 
 Original implementation by Kirrily "Skud" Robert (as
 C<YAML::ConfigFile>).
-
-=head1 TODO
-
-=over
-
-=item
-
-Builtin parameter type/value checking would be cool.
-
-=item
-
-The ability to delineate "system" and "user" level configuration,
-enabling the output of C<write> to consist only of data from the user's
-own init files and command line arguments might be nice.
-
-=back
 
 =head1 BUGS
 

@@ -1,15 +1,19 @@
-use Test::More tests => 5;
+use Test::More tests => 7;
 use Config::YAML;
 
 my $c = Config::YAML->new(config => 't/test.yaml');
-ok($c->{clobber} == 1, "This should always work if the previous tests did");
-ok($c->get('clobber') == 1, "OO value retreival works");
-$c->set('clobber',5);
-ok($c->get('clobber') == 5, "OO value specification works");
+is($c->{clobber}, 1,   "This should always work if the previous tests did");
+is($c->get_clobber, 1, "OO value retreival works");
+$c->set_clobber(5);
+is($c->get_clobber, 5, "OO value specification works");
 
-my $media = $c->get('media');
-ok($media->[1] eq "ogg", "get()ting data structures works");
+my $media = $c->get_media;
+is($media->[1], 'ogg', "get_ting data structures works");
 
 my @newmedia = qw(oil stucco acrylics latex);
-$c->set('media',\@newmedia);
-ok($c->{media}[1] eq "stucco", "set()ting data structures works");
+$c->set_media(\@newmedia);
+is($c->{media}[1], 'stucco', "set_ting data structures works");
+
+$c->set_fnord(42);
+is($c->get_fnord, 42, "creating new attribs works");
+is($c->get_splort, undef, "getting nonexistent attribs returns undef");

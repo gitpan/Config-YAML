@@ -1,5 +1,11 @@
 Revision history for Config-YAML
 
+1.37    2005-01-16 2245EDT
+
+        * get() and set() methods deprecated in favor of autoloading
+          accessor functions /a la/ The Damian.
+        * Doc tweaks
+
 1.28    2004-11-14 2053EDT
 
         * POD typos fixed, minor doc tweaks
