@@ -1,6 +1,6 @@
 package Config::YAML;
 
-# $Id: YAML.pm 25 2004-10-04 00:10:08Z mdxi $
+# $Id: YAML.pm 26 2004-10-23 20:29:14Z mdxi $
 
 use warnings;
 use strict;
@@ -16,7 +16,7 @@ Version 1.22
 
 =cut
 
-our $VERSION = '1.22';
+our $VERSION = '1.27';
 
 =head1 SYNOPSIS
 
@@ -72,25 +72,24 @@ Creates a new Config::YAML object.
 
 The C<config> parameter is required, and must be the first parameter
 given. It specifies the file to be read in during object creation. If
-the second parameter is C<output>, then it is taken to specify the
-file to which configuration data will later be written out. This
+the second parameter is C<output>, then it is used to specify the file
+to which configuration data will later be written out.  This
 positional dependancy makes it possible to have another C<config>
-and/or C<output> parameter passed to the constructor, which will not
-receive any special treatment. (It is, of course, also safe to have
-parameters named C<config> and/or C<output> in configuration files or
-in calls to C<set>.)
+and/or C<output> parameter passed to the constructor, which will
+receive no special treatment.
 
-Any desired configuration defaults can be passed as arguments to the
-constructor.
+Initial configuration values can be passed as parameters to the
+constructor:
 
     my $c = Config::YAML->new( config => "~/.foorc",
-                               foo    => "bar",
-                               baz    => "quux"
+                               foo    => "abc",
+                               bar    => "xyz",
+                               baz    => [ 1, 2, 3 ],
                              );
 
 All internal state variables follow the C<_name> convention, so do
-yourself a favor and don't make config variables with underscores as
-their first character.
+yourself a favor and don't pass parameters with underscores as their
+first character.
 
 =cut
 
@@ -104,7 +103,7 @@ sub new {
     if (@_ && ($_[0] eq "output")) { shift; $priv{output} = shift; }
 
     my $self = bless { _infile    => $priv{config},
-                       _outfile   => $priv{output} || $priv{config},
+                       _outfile   => $priv{output}   || $priv{config},
                      }, $class;
 
     %args = @_;
@@ -124,15 +123,16 @@ as parameters directly in the object hashref, and are accessed as
     $c->{array}[idx]
     $c->{hash}{key}
 
-and so on down your data structure. If this bothers you, C<get> is
-provided.
+and so on down your data structure. However, the method C<get> is
+provided for people who are skeeved by treating an object as a plain
+old hashref part of the time.
 
 C<get> returns the value of a parameter
 
     print $c->get('foo');
 
-Provided for people who are skeeved by treating an object as a plain
-old hashref part of the time.
+If the config parameter requested is something other than a scalar, a
+reference to it will be returned.
 
 =cut
 
@@ -143,13 +143,13 @@ sub get {
 
 =head2 set
 
-Sets the value of a parameter
+Also provided is a C<set> method, which sets the value of a parameter:
 
     $c->set('foo',1);
     $c->set('bar',"While I pondered, weak and weary...");
 
-Provided for people who are skeeved by treating an object as a plain
-old hashref part of the time.
+    my @paints = qw( oil acrylic tempera );
+    $c->set('paints', \@paints);
 
 =cut
 
@@ -165,7 +165,7 @@ any source...
 
     $c->fold(\%data);
 
-...as long as it ends up in a hash.
+...as long as it's been munged into a hash.
 
 =cut
 
@@ -211,7 +211,7 @@ Dump current configuration state to a YAML-formatted flat file.
 
     $c->write;
 
-The file to be used is specified in the constructor call. See C<new>,
+The file to be written is specified in the constructor call. See C<new>,
 above, for details.
 
 =cut
@@ -236,22 +236,30 @@ sub write {
 
 =head1 AUTHOR
 
-Shawn Boyette (C<< <mdxi@cpan.org> >>); original implementation by
-Kirrily "Skud" Robert (as YAML::ConfigFile).
+Shawn Boyette (C<< <mdxi@cpan.org> >>)
+
+Original implementation by Kirrily "Skud" Robert (as
+C<YAML::ConfigFile>).
 
 =head1 TODO
-
-The ability to delineate "system" and "user" level configuration,
-enabling the output of C<write> to consist only of data from the user's
-own init files and command line arguments might be nice.
-
-=head1 BUGS
 
 =over
 
 =item
 
-C<get> and C<set> don't currently work on nested data structures.
+Builtin parameter type/value checking would be cool.
+
+=item
+
+The ability to delineate "system" and "user" level configuration,
+enabling the output of C<write> to consist only of data from the user's
+own init files and command line arguments might be nice.
+
+=back
+
+=head1 BUGS
+
+=over
 
 =item
 

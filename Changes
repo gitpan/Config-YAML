@@ -1,6 +1,11 @@
 Revision history for Config-YAML
 
-1.22    2004-10-03 1945EDT
+1.27    2004-11-13 1235EDT
+        YAML.pl now listed as a dependancy (dur).
+        More/better tests for get() and set() methods.
+        Documentation improvements.
+
+1.22    2004-10-03 1945EST
         In new(), the 'config' and 'output' parameters must now be the
         first and (still optionally) second parameters passed. This is
         so that they can be repeated, allowing the user to set their
@@ -9,9 +14,9 @@ Revision history for Config-YAML
 
         Doc tweaks to reflect this as well as more general tweaks.
 
-1.21    2004-10-02 1448EDT
+1.21    2004-10-02 1448EST
         Doc cleanups
 
-1.00    2004-10-01 1550EDT
+1.00    2004-10-01 1550EST
         First version, released on an unsuspecting world.
 
