@@ -22,3 +22,7 @@ ok($d->{foo} eq 'bar');
 ok($d->{bar} eq 'foo', "User config variable declaration works");
 ok($d->{config} == 1);
 ok($d->{output} eq 'quux', "Double declaration of config/output works");
+
+$_ = 100;
+$c = Config::YAML->new( config => '/dev/null' );
+ok($_ == 100, "Config::YAML now $_-safe");

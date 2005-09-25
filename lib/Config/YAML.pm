@@ -14,11 +14,11 @@ Config::YAML - Simple configuration automation
 
 =head1 VERSION
 
-Version 1.41
+Version 1.42
 
 =cut
 
-our $VERSION = '1.41';
+our $VERSION = '1.42';
 
 =head1 SYNOPSIS
 
@@ -188,13 +188,14 @@ sub read {
     $self->{_infile} = $file if $file;
 
     my $yaml;
+    my $line;
 
     open(FH,'<',$self->{_infile}) or die "Can't open $self->{_infile}; $!\n";
-    while (<FH>) {
-        next if m/^\-{3,}/;
-        next if m/^#/;
-        next if m/^$/;
-        $yaml .= $_;
+    while ($line = <FH>) {
+        next if ($line =~ /^\-{3,}/);
+        next if ($line =~ /^#/);
+        next if ($line =~ /^$/);
+        $yaml .= $line;
     }
     close(FH);
 

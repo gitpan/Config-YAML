@@ -1,5 +1,10 @@
 Revision history for Config-YAML
 
+1.42    2005-09-26
+
+        * rt.cpan ticket #14625: Config::YAML appears not to be $_ safe
+          Fixes for this bug report
+
 1.41    2005-03-16
 
         * Bug from 1.40 also occurred in fold(). Fixed.
